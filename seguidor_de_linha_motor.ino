@@ -1,64 +1,73 @@
-#define MAX 400
+//motor A connected between A01 and A02
+//motor B connected between B01 and B02
 
-// Right and left motor controled by DRV8835.
+int STBY = 9; //standby
 
-#define PWM_L 10
-#define PWM_R 9
-#define DIR_L 8
-#define DIR_R 7
+//Motor A
+int PWMA = 5; //Speed control
+int AIN1 = 4; //Direction
+int AIN2 = 3; //Direction
 
-boolean flipLeft = false;
-boolean flipRight = false;
+//Motor B
+int PWMB = 6; //Speed control
+int BIN1 = 7; //Direction
+int BIN2 = 8; //Direction
 
-void setup() {
-  // put your setup code here, to run once:
-
-  pinMode(PWM_L,  OUTPUT);
-  pinMode(PWM_R,  OUTPUT);
-  pinMode(DIR_L, OUTPUT);
-  pinMode(DIR_R, OUTPUT);
-
-  setSpeeds(400, 400);
+void setup(){
+  pinMode(STBY, OUTPUT);
+  
+  pinMode(PWMA, OUTPUT);
+  pinMode(AIN1, OUTPUT);
+  pinMode(AIN2, OUTPUT);
+  
+  pinMode(PWMB, OUTPUT);
+  pinMode(BIN1, OUTPUT);
+  pinMode(BIN2, OUTPUT);
 }
 
-void loop() {
-  // put your main code here, to run repeatedly:
-
+void loop(){
+  move(1, 255, 1); //motor 1, full speed, left
+  move(2, 255, 1); //motor 2, full speed, left
+  
+  delay(500);
+  
+  move(1, 255, 0); //motor 1, half speed, right
+  move(2, 255, 0); //motor 2, half speed, right
+  
+  delay(1000);
+  stop();
+  delay(250);
 }
 
-void flipLeftMotor(boolean flip) {
-  flipLeft = flip;
+void move(int motor, int speed, int direction){
+  //Move specific motor at speed and direction
+  //motor: 0 for B 1 for A
+  //speed: 0 is off, and 255 is full speed
+  //direction: 0 clockwise, 1 counter-clockwise
+  
+  digitalWrite(STBY, HIGH); //disable standby
+  
+  boolean inPin1 = LOW;
+  boolean inPin2 = HIGH;
+  
+  if(direction == 1){
+    inPin1 = HIGH;
+    inPin2 = LOW;
+  }
+
+  if(motor == 1){
+    digitalWrite(AIN1, inPin1);
+    digitalWrite(AIN2, inPin2);
+    analogWrite(PWMA, speed);
+    
+  } else{
+    digitalWrite(BIN1, inPin1);
+    digitalWrite(BIN2, inPin2);
+    analogWrite(PWMB, speed);
+  }
 }
 
-void flipRightMotor(boolean flip) {
-  flipRight = flip;
-}
-
-void setLeftSpeed(int speed) {
-  if (speed > MAX)
-    speed = MAX;
-
-  analogWrite(PWM_L, speed * 51 / 80);
-
-  if(flipLeft == true)
-    digitalWrite(DIR_L, HIGH);
-  else
-    digitalWrite(DIR_L, LOW);
-}
-
-void setRightSpeed(int speed) {
-  if (speed > MAX)
-    speed = MAX;
-
-  analogWrite(PWM_R, speed * 51 / 80);
-
-  if(flipRight == true)
-    digitalWrite(DIR_R, HIGH);
-  else
-    digitalWrite(DIR_R, LOW);
-}
-
-void setSpeeds(int leftSpeed, int rightSpeed) {
-  setLeftSpeed(leftSpeed);
-  setRightSpeed(rightSpeed);
+void stop(){
+  //enable standby
+  digitalWrite(STBY, LOW);
 }
